@@ -8,7 +8,7 @@ import { indexer, dialogIndexer, lgIndexer, luIndexer, autofixReferInDialog } fr
 import { SensitiveProperties, LuFile, DialogInfo, importResolverGenerator } from '@bfc/shared';
 import formatMessage from 'format-message';
 
-import { ActionTypes, FileTypes, BotStatus, Text } from '../../constants';
+import { ActionTypes, FileTypes, BotStatus, Text, AppUpdaterStatus } from '../../constants';
 import { DialogSetting, ReducerFunc } from '../types';
 import { UserTokenPayload } from '../action/types';
 import { getExtension, getBaseName } from '../../utils';
@@ -457,6 +457,37 @@ const setCodeEditorSettings: ReducerFunc = (state, settings) => {
   return state;
 };
 
+const setAppUpdateError: ReducerFunc<any> = (state, error) => {
+  state.appUpdate.error = error;
+  return state;
+};
+
+const setAppUpdateProgress: ReducerFunc<{ progressPercent: number; downloadSizeInBytes: number }> = (
+  state,
+  { downloadSizeInBytes, progressPercent }
+) => {
+  if (downloadSizeInBytes !== state.appUpdate.downloadSizeInBytes) {
+    state.appUpdate.downloadSizeInBytes = downloadSizeInBytes;
+  }
+  state.appUpdate.progressPercent = progressPercent;
+  return state;
+};
+
+const setAppUpdateStatus: ReducerFunc<{ status: AppUpdaterStatus; version?: string }> = (state, payload) => {
+  const { status, version } = payload;
+  if (state.appUpdate.status !== status) {
+    state.appUpdate.status;
+  }
+  state.appUpdate.status = status;
+  if (status === AppUpdaterStatus.UPDATE_AVAILABLE) {
+    state.appUpdate.version = version;
+  }
+  if (status === AppUpdaterStatus.IDLE) {
+    state.appUpdate.version = undefined;
+  }
+  return state;
+};
+
 const noOp: ReducerFunc = state => {
   return state;
 };
@@ -508,4 +539,7 @@ export const reducer = createReducer({
   [ActionTypes.EDITOR_CLIPBOARD]: setClipboardActions,
   [ActionTypes.UPDATE_BOTSTATUS]: setBotStatus,
   [ActionTypes.SET_USER_SETTINGS]: setCodeEditorSettings,
+  [ActionTypes.SET_APP_UPDATE_ERROR]: setAppUpdateError,
+  [ActionTypes.SET_APP_UPDATE_PROGRESS]: setAppUpdateProgress,
+  [ActionTypes.SET_APP_UPDATE_STATUS]: setAppUpdateStatus,
 });
